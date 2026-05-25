@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>stavBOOK – Poriadok na stavbe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0C0A08;
+  --bg2:#131008;
+  --surface:#1A1610;
+  --surface2:#221E14;
+  --orange:#F5820A;
+  --orange2:#FF9A2E;
+  --orange-glow:rgba(245,130,10,0.25);
+  --gold:#D4A017;
+  --cream:#F2EAD8;
+  --cream2:#C8BFA8;
+  --muted:#6B6358;
+  --green:#2ECC71;
+  --red:#E74C3C;
+  --amber:#F39C12;
+  --border:rgba(245,130,10,0.15);
+  --border2:rgba(242,234,216,0.08);
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden;cursor:none;}
+
+/* CUSTOM CURSOR */
+.cursor{position:fixed;width:12px;height:12px;background:var(--orange);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s,width .2s,height .2s,background .2s;mix-blend-mode:screen;}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(245,130,10,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .08s,top .08s,width .2s,height .2s,opacity .2s;}
+.cursor.hover{width:6px;height:6px;}
+.cursor-ring.hover{width:50px;height:50px;border-color:var(--orange);}
+
+/* NOISE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");opacity:.4;pointer-events:none;z-index:1;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;background:rgba(12,10,8,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Oswald',sans-serif;font-size:1.7rem;font-weight:700;letter-spacing:.06em;color:var(--cream);}
+.nav-logo span{color:var(--orange);}
+.nav-links{display:flex;gap:2.5rem;align-items:center;}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:.82rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--orange);}
+.nav-btn{background:var(--orange);color:#000;padding:.55rem 1.4rem;border-radius:2px;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .2s,transform .15s;}
+.nav-btn:hover{background:var(--orange2);transform:translateY(-1px);}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:4px;}
+.hamburger span{display:block;height:2px;background:var(--cream);border-radius:2px;transition:transform .25s,opacity .2s,width .2s;}
+.hamburger span:nth-child(2){width:70%;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;width:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mobile-menu{display:none;position:fixed;top:65px;left:0;right:0;background:rgba(12,10,8,0.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:1.5rem;flex-direction:column;gap:.3rem;z-index:499;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{color:var(--muted);font-size:1rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:.8rem 0;border-bottom:1px solid var(--border2);text-decoration:none;transition:color .2s;}
+.mobile-menu a:hover{color:var(--orange);}
+.mobile-menu .mob-cta{margin-top:.5rem;display:block;text-align:center;background:var(--orange);color:#000;padding:.9rem;font-weight:700;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;border:none;}
+
+/* ═══════════════ HERO ═══════════════ */
+.hero{min-height:100vh;position:relative;display:flex;align-items:center;overflow:hidden;}
+.hero-canvas{position:absolute;inset:0;z-index:0;}
+.hero-content{position:relative;z-index:2;padding:10rem 3rem 5rem 3rem;max-width:900px;width:100%;}
+.hero-tag{display:inline-flex;align-items:center;gap:.6rem;font-size:.72rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:2rem;padding:.4rem .9rem .4rem .5rem;border:1px solid var(--border);background:rgba(245,130,10,.06);border-radius:2px;}
+.hero-tag-dot{width:6px;height:6px;background:var(--orange);border-radius:50%;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.hero h1{font-family:'Oswald',sans-serif;font-size:clamp(3.5rem,8vw,8rem);font-weight:700;line-height:.92;letter-spacing:-.01em;margin-bottom:2rem;overflow:hidden;}
+.h1-line{display:block;overflow:hidden;}
+.h1-line span{display:block;}
+.h1-accent{color:transparent;-webkit-text-stroke:1.5px var(--orange);font-size:clamp(3.8rem,8.5vw,8.5rem);}
+.hero-sub{font-size:1.1rem;font-weight:400;color:var(--cream2);max-width:520px;line-height:1.75;margin-bottom:3rem;}
+.hero-cta-row{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.hero-btn{background:var(--orange);color:#000;border:none;padding:1rem 2.5rem;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:none;border-radius:2px;text-decoration:none;display:inline-block;position:relative;overflow:hidden;transition:transform .2s;}
+.hero-btn::after{content:'';position:absolute;inset:0;background:var(--orange2);transform:translateX(-101%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.hero-btn:hover::after{transform:translateX(0);}
+.hero-btn span{position:relative;z-index:1;}
+.hero-btn:hover{transform:translateY(-2px);}
+.hero-link{color:var(--cream2);font-size:.88rem;font-weight:500;letter-spacing:.06em;text-decoration:none;display:flex;align-items:center;gap:.4rem;transition:color .2s;}
+.hero-link:hover{color:var(--orange);}
+.hero-link svg{transition:transform .2s;}
+.hero-link:hover svg{transform:translateX(4px);}
+.hero-stats{display:flex;gap:3rem;margin-top:4rem;padding-top:2.5rem;border-top:1px solid var(--border2);}
+.hstat-n{font-family:'Oswald',sans-serif;font-size:2.2rem;font-weight:600;color:var(--orange);display:block;line-height:1;}
+.hstat-l{font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.3rem;display:block;}
+/* hero right decoration */
+.hero-deco{position:absolute;right:-5%;top:50%;transform:translateY(-50%);width:55%;height:80vh;z-index:1;pointer-events:none;}
+.hero-deco-inner{position:relative;width:100%;height:100%;}
+/* big glowing circle */
+.hero-glow{position:absolute;top:50%;left:50%;width:500px;height:500px;background:radial-gradient(circle,rgba(245,130,10,.18) 0%,transparent 70%);transform:translate(-50%,-50%);border-radius:50%;}
+/* animated grid lines */
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(245,130,10,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(245,130,10,.06) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);}
+/* floating cards */
+.fcard{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem 1.1rem;backdrop-filter:blur(10px);}
+.fcard1{top:12%;left:10%;animation:float1 6s ease-in-out infinite;}
+.fcard2{top:45%;left:5%;animation:float2 7s ease-in-out infinite;}
+.fcard3{bottom:18%;left:20%;animation:float1 5.5s ease-in-out infinite .5s;}
+.fcard4{top:25%;right:5%;animation:float2 6.5s ease-in-out infinite 1s;}
+@keyframes float1{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes float2{0%,100%{transform:translateY(0);}50%{transform:translateY(10px);}}
+.fcard-label{font-size:.58rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;}
+.fcard-val{font-family:'Oswald',sans-serif;font-size:1.4rem;font-weight:600;color:var(--cream);display:flex;align-items:baseline;gap:.3rem;}
+.fcard-unit{font-size:.7rem;font-weight:400;color:var(--muted);}
+.fcard-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;}
+.fcard-row:last-child{margin:0;}
+.fcard-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.fcard-dot-g{background:var(--green);}
+.fcard-dot-a{background:var(--amber);}
+.fcard-dot-r{background:var(--red);}
+.fcard-name{font-size:.65rem;color:var(--cream2);flex:1;}
+.fcard-time{font-size:.6rem;color:var(--muted);font-family:monospace;}
+.fcard-badge{font-size:.55rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;}
+.fbg{background:rgba(46,204,113,.2);color:#2ECC71;}
+.fba{background:rgba(243,156,18,.2);color:#F39C12;}
+.fbr{background:rgba(231,76,60,.2);color:#E74C3C;}
+
+/* ═══════════════ MARQUEE ═══════════════ */
+.marquee-wrap{background:var(--orange);padding:.7rem 0;overflow:hidden;position:relative;z-index:2;}
+.marquee-track{display:flex;gap:0;white-space:nowrap;animation:marquee 18s linear infinite;}
+.marquee-item{font-family:'Oswald',sans-serif;font-size:.85rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#000;padding:0 2.5rem;display:flex;align-items:center;gap:.8rem;}
+.marquee-sep{width:5px;height:5px;background:#000;border-radius:50%;opacity:.4;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* ═══════════════ FEATURES ═══════════════ */
+.features-section{padding:7rem 3rem;background:var(--bg);}
+.section-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem;}
+.section-eyebrow::before{content:'';display:block;width:24px;height:1.5px;background:var(--orange);}
+.section-h{font-family:'Oswald',sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:700;line-height:1.0;letter-spacing:.01em;margin-bottom:1rem;}
+.section-sub{font-size:1rem;color:var(--cream2);line-height:1.75;max-width:500px;margin-bottom:4rem;}
+
+.feats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.feat-card{background:var(--bg);padding:2.5rem;position:relative;overflow:hidden;transition:background .3s;}
+.feat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.4,0,.2,1);}
+.feat-card:hover{background:var(--surface);}
+.feat-card:hover::before{transform:scaleX(1);}
+.feat-num{font-family:'Oswald',sans-serif;font-size:3.5rem;font-weight:700;color:var(--surface2);line-height:1;margin-bottom:1rem;letter-spacing:.02em;transition:color .3s;}
+.feat-card:hover .feat-num{color:rgba(245,130,10,.15);}
+.feat-ico{font-size:1.8rem;margin-bottom:1rem;}
+.feat-title{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:600;letter-spacing:.04em;color:var(--cream);margin-bottom:.7rem;text-transform:uppercase;}
+.feat-desc{font-size:.9rem;color:var(--cream2);line-height:1.7;margin-bottom:1.2rem;}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:.35rem;}
+.feat-list li{font-size:.82rem;color:var(--muted);display:flex;align-items:flex-start;gap:.5rem;transition:color .2s;}
+.feat-list li::before{content:'—';color:var(--orange);flex-shrink:0;font-weight:700;}
+.feat-card:hover .feat-list li{color:var(--cream2);}
+
+/* ═══════════════ SCREENS ═══════════════ */
+.screens-section{padding:7rem 3rem;background:var(--bg2);}
+.screens-section .section-eyebrow::before{background:var(--orange);}
+
+.screen-block{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;margin-bottom:6rem;}
+.screen-block:last-child{margin-bottom:0;}
+.screen-block.flip{direction:rtl;}
+.screen-block.flip > *{direction:ltr;}
+.sb-text-tag{font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:.6rem;}
+.sb-text-h{font-family:'Oswald',sans-serif;font-size:clamp(1.6rem,2.8vw,2.4rem);font-weight:700;letter-spacing:.02em;line-height:1.05;margin-bottom:.8rem;}
+.sb-text-p{font-size:.95rem;color:var(--cream2);line-height:1.75;margin-bottom:1.5rem;}
+.sb-points{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.sb-points li{font-size:.88rem;color:var(--cream2);display:flex;align-items:flex-start;gap:.6rem;}
+.sb-points li::before{content:'✓';color:var(--orange);font-weight:700;flex-shrink:0;margin-top:1px;}
+
+/* browser */
+.mock-browser{background:#111;border-radius:10px;border:1px solid rgba(255,255,255,.1);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7);}
+.mock-bar{background:#0D0B09;padding:.55rem .9rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.mock-dots{display:flex;gap:.35rem;}
+.mock-dot{width:9px;height:9px;border-radius:50%;}
+.md-r{background:#FF5F57;}.md-y{background:#FFBD2E;}.md-g{background:#28C840;}
+.mock-url{flex:1;background:rgba(255,255,255,.05);border-radius:3px;padding:.22rem .7rem;font-size:.62rem;color:rgba(255,255,255,.25);font-family:monospace;margin-left:.3rem;}
+.mock-body{padding:.9rem;background:#161210;}
+
+/* phone */
+.mock-phone{width:210px;background:#0D0B09;border-radius:28px;border:2px solid rgba(255,255,255,.1);overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.7);margin:0 auto;}
+.mp-status{background:#0A0907;padding:.4rem .9rem;display:flex;justify-content:space-between;align-items:center;}
+.mp-time{font-size:.6rem;color:rgba(255,255,255,.4);font-weight:600;}
+.mp-body{background:#141210;padding:.65rem;}
+.mp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.mp-logo{font-family:'Oswald',sans-serif;font-size:.85rem;color:rgba(255,255,255,.6);}
+.mp-logo span{color:var(--orange);}
+.mp-live{font-size:.52rem;font-weight:700;letter-spacing:.1em;color:var(--green);background:rgba(46,204,113,.15);padding:2px 7px;border-radius:10px;animation:blink 1.4s infinite;}
+.mp-project{font-size:.58rem;color:rgba(255,255,255,.3);margin-bottom:.5rem;letter-spacing:.03em;}
+.mp-row{display:flex;align-items:center;gap:.45rem;padding:.3rem .2rem;border-radius:3px;min-height:30px;transition:background .2s;}
+.mp-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;flex-shrink:0;}
+.mp-name{flex:1;font-size:.62rem;font-weight:500;color:rgba(255,255,255,.7);}
+.mp-t{font-size:.58rem;color:rgba(255,255,255,.3);font-family:monospace;min-width:32px;text-align:right;}
+.mp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.mp-foot{margin-top:.5rem;padding-top:.4rem;border-top:1px solid rgba(255,255,255,.05);text-align:center;font-size:.58rem;color:rgba(255,255,255,.25);}
+
+/* dashboard table */
+.adm-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.7rem;}
+.adm-s{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:.5rem .6rem;}
+.adm-sn{font-family:'Oswald',sans-serif;font-size:1.4rem;color:var(--cream);line-height:1;}
+.adm-sl{font-size:.52rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;}
+.adm-prog{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin:.4rem 0;}
+.adm-prog-fill{height:100%;background:var(--orange);border-radius:2px;transition:width 1s ease;}
+.adm-th{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr .9fr;gap:.3rem;padding:.3rem .4rem;font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);}
+.adm-tr{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr .9fr;gap:.3rem;align-items:center;padding:.38rem .4rem;border-top:1px solid rgba(255,255,255,.04);}
+.adm-tn{font-size:.68rem;color:rgba(255,255,255,.75);font-weight:500;}
+.adm-tp{font-size:.6rem;color:rgba(255,255,255,.35);}
+.adm-ti{font-size:.62rem;color:rgba(255,255,255,.4);font-family:monospace;}
+.adm-th2{font-size:.62rem;color:#FFD97A;font-weight:600;}
+.adm-ts{font-size:.56rem;font-weight:700;padding:2px 6px;border-radius:2px;text-transform:uppercase;letter-spacing:.06em;display:inline-block;}
+.tsg{background:rgba(46,204,113,.2);color:#2ECC71;}
+.tsa{background:rgba(243,156,18,.2);color:#F39C12;}
+.tsr{background:rgba(231,76,60,.2);color:#E74C3C;}
+
+/* export */
+.exp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+.exp-per{font-family:'Oswald',sans-serif;font-size:.95rem;color:rgba(255,255,255,.6);letter-spacing:.04em;}
+.exp-dl{background:var(--orange);color:#000;border:none;padding:.3rem .8rem;border-radius:2px;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:none;transition:background .2s;}
+.exp-dl:hover{background:var(--orange2);}
+.exp-sums{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.7rem;}
+.exp-s{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:3px;padding:.5rem;text-align:center;}
+.exp-sn{font-family:'Oswald',sans-serif;font-size:1.1rem;color:var(--cream);line-height:1;}
+.exp-sl{font-size:.52rem;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.07em;}
+.exp-th{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:.3rem;padding:.28rem .35rem;font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);}
+.exp-tr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:.3rem;align-items:center;padding:.34rem .35rem;border-top:1px solid rgba(255,255,255,.04);}
+.exp-en{font-size:.65rem;color:rgba(255,255,255,.7);font-weight:500;}
+.exp-n{font-size:.62rem;color:rgba(255,255,255,.4);text-align:center;}
+.exp-tot{font-size:.65rem;color:#FFD97A;font-weight:700;text-align:center;}
+@keyframes rowIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.row-in{animation:rowIn .3s ease both;}
+
+/* ═══════════════ HOW IT WORKS ═══════════════ */
+.how-section{padding:7rem 3rem;background:var(--surface);}
+.steps-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;margin-top:2rem;}
+.steps-wrap::before{content:'';position:absolute;top:34px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--border) 20%,var(--border) 80%,transparent);}
+.step-item{padding:1.5rem;position:relative;z-index:1;}
+.step-num-wrap{width:68px;height:68px;position:relative;margin-bottom:1.5rem;}
+.step-circle-outer{width:68px;height:68px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface);position:relative;}
+.step-circle-inner{width:48px;height:48px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;color:#000;}
+.step-title{font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--cream);margin-bottom:.5rem;}
+.step-desc{font-size:.85rem;color:var(--muted);line-height:1.65;}
+.step-badge{display:inline-block;margin-top:.6rem;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);background:rgba(245,130,10,.1);border:1px solid rgba(245,130,10,.2);padding:3px 9px;border-radius:2px;}
+
+/* ═══════════════ ROLES ═══════════════ */
+.roles-section{padding:7rem 3rem;background:var(--bg);}
+.roles-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3rem;}
+.role-card{border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .3s;}
+.role-card:hover{border-color:var(--orange);}
+.role-top{padding:2rem 2.2rem;border-bottom:1px solid var(--border);}
+.role-top-admin{background:linear-gradient(135deg,rgba(245,130,10,.08) 0%,transparent 60%);}
+.role-top-master{background:linear-gradient(135deg,rgba(212,160,23,.06) 0%,transparent 60%);}
+.role-pill{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border-radius:2px;display:inline-block;margin-bottom:.8rem;}
+.rp-admin{background:rgba(245,130,10,.12);color:var(--orange);}
+.rp-master{background:rgba(212,160,23,.12);color:var(--gold);}
+.role-h{font-family:'Oswald',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing:.03em;color:var(--cream);margin-bottom:.3rem;}
+.role-sub{font-size:.85rem;color:var(--muted);}
+.role-body{padding:2rem 2.2rem;}
+.role-items{list-style:none;display:flex;flex-direction:column;gap:.55rem;}
+.role-items li{font-size:.88rem;color:var(--cream2);display:flex;align-items:flex-start;gap:.6rem;padding-bottom:.55rem;border-bottom:1px solid var(--border2);}
+.role-items li:last-child{border:none;padding-bottom:0;}
+.role-items li::before{content:'→';color:var(--orange);font-weight:700;flex-shrink:0;font-size:.8rem;margin-top:2px;}
+.role-items strong{color:var(--cream);font-weight:600;}
+
+/* ═══════════════ PRICING ═══════════════ */
+.pricing-section{padding:5rem 3rem;background:var(--bg2);}
+.pricing-inner{border:1px solid var(--border);border-radius:8px;padding:3.5rem;display:grid;grid-template-columns:1.4fr 1fr;gap:4rem;align-items:center;background:var(--surface);position:relative;overflow:hidden;}
+.pricing-inner::before{content:'';position:absolute;top:0;right:0;width:300px;height:300px;background:radial-gradient(circle,rgba(245,130,10,.08) 0%,transparent 70%);}
+.pricing-h{font-family:'Oswald',sans-serif;font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;letter-spacing:.02em;line-height:1.05;margin-bottom:.8rem;}
+.pricing-p{font-size:.95rem;color:var(--muted);line-height:1.7;}
+.tiers{display:flex;flex-direction:column;gap:.7rem;}
+.tier-row{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:4px;transition:border-color .2s;}
+.tier-row:hover{border-color:var(--border);}
+.tier-l{font-size:.88rem;color:var(--cream2);}
+.tier-note{font-size:.72rem;color:var(--muted);margin-top:.15rem;}
+.tier-badge{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;}
+.tb1{background:rgba(255,255,255,.06);color:var(--muted);}
+.tb2{background:rgba(245,130,10,.12);color:var(--orange);}
+.tb3{background:rgba(212,160,23,.12);color:var(--gold);}
+
+/* ═══════════════ SIGNUP ═══════════════ */
+.signup-section{padding:7rem 3rem;background:var(--bg);display:grid;grid-template-columns:1.2fr 1fr;gap:5rem;align-items:start;}
+.signup-h{font-family:'Oswald',sans-serif;font-size:clamp(2rem,3.5vw,3.2rem);font-weight:700;letter-spacing:.02em;line-height:1.05;margin-bottom:.8rem;}
+.signup-p{font-size:.95rem;color:var(--muted);line-height:1.75;margin-bottom:1.8rem;}
+.signup-checks{display:flex;flex-direction:column;gap:.6rem;}
+.sc{display:flex;align-items:flex-start;gap:.6rem;font-size:.88rem;color:var(--cream2);}
+.sc::before{content:'✓';color:var(--orange);font-weight:700;flex-shrink:0;}
+.form-box{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2.2rem;}
+.form-h{font-family:'Oswald',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--cream);margin-bottom:1.5rem;}
+.fg{margin-bottom:1rem;}
+.fg label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.35rem;}
+.fg input,.fg select{width:100%;padding:.75rem 1rem;background:var(--bg);border:1px solid var(--border);border-radius:3px;font-family:'Outfit',sans-serif;font-size:.92rem;color:var(--cream);outline:none;transition:border-color .2s;appearance:none;}
+.fg input:focus,.fg select:focus{border-color:var(--orange);}
+.fg input::placeholder{color:var(--muted);}
+.fg select option{background:var(--bg);}
+.submit-btn{width:100%;padding:.95rem;background:var(--orange);color:#000;border:none;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:none;border-radius:3px;margin-top:.5rem;position:relative;overflow:hidden;transition:transform .2s;}
+.submit-btn::after{content:'';position:absolute;inset:0;background:var(--orange2);transform:translateX(-101%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.submit-btn span{position:relative;z-index:1;}
+.submit-btn:hover::after{transform:translateX(0);}
+.submit-btn:hover{transform:translateY(-1px);}
+.form-note{font-size:.72rem;color:var(--muted);margin-top:.7rem;line-height:1.5;text-align:center;}
+.form-ok{display:none;text-align:center;padding:2rem 0;}
+.form-ok-icon{font-size:3rem;margin-bottom:1rem;}
+.form-ok-h{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;letter-spacing:.04em;color:var(--cream);margin-bottom:.4rem;}
+.form-ok-p{font-size:.88rem;color:var(--muted);line-height:1.6;}
+
+/* ═══════════════ FOOTER ═══════════════ */
+footer{background:var(--bg);border-top:1px solid var(--border2);padding:2rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.foot-logo{font-family:'Oswald',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:.06em;color:rgba(255,255,255,.4);}
+.foot-logo span{color:var(--orange);}
+footer span{font-size:.75rem;color:var(--muted);}
+
+/* ═══════════════ SCROLL REVEAL ═══════════════ */
+.reveal{opacity:1;transform:none;}
+.reveal-left{opacity:1;transform:none;}
+.reveal-right{opacity:1;transform:none;}
+.gsap-ready .reveal{opacity:0;transform:translateY(30px);}
+.gsap-ready .reveal-left{opacity:0;transform:translateX(-30px);}
+.gsap-ready .reveal-right{opacity:0;transform:translateX(30px);}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:960px){
+  .nav-links{display:none;}
+  .hamburger{display:flex;}
+  nav{padding:1rem 1.2rem;}
+  .hero-content{padding:8rem 1.5rem 4rem;}
+  .hero-deco{display:none;}
+  .hero-stats{gap:2rem;}
+  .features-section,.screens-section,.how-section,.roles-section,.pricing-section{padding:5rem 1.5rem;}
+  .signup-section{padding:5rem 1.5rem;grid-template-columns:1fr;gap:3rem;}
+  .feats-grid{grid-template-columns:1fr;}
+  .screen-block,.screen-block.flip{grid-template-columns:1fr;gap:2rem;direction:ltr;}
+  .steps-wrap{grid-template-columns:1fr 1fr;gap:1rem;}
+  .steps-wrap::before{display:none;}
+  .roles-grid{grid-template-columns:1fr;}
+  .pricing-inner{grid-template-columns:1fr;gap:2.5rem;padding:2.2rem;}
+  footer{padding:1.5rem;flex-direction:column;text-align:center;}
+  body{cursor:auto;}
+  .cursor,.cursor-ring{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">stav<span>BOOK</span></div>
+  <div class="nav-links">
+    <a href="#features">Funkcie</a>
+    <a href="#screens">Ukážka</a>
+    <a href="#roles">Roly</a>
+    <a href="#signup" class="nav-btn">Mám záujem</a>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="closeMenu()">Funkcie</a>
+  <a href="#screens" onclick="closeMenu()">Ukážka</a>
+  <a href="#roles" onclick="closeMenu()">Roly</a>
+  <a href="#signup" class="mob-cta" onclick="closeMenu()">Mám záujem →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+
+  <div class="hero-content">
+    <div class="hero-tag"><span class="hero-tag-dot"></span>Digitálna dochádzka pre stavby</div>
+    <h1>
+      <span class="h1-line"><span id="hl1">Koniec</span></span>
+      <span class="h1-line"><span id="hl2">papierového</span></span>
+      <span class="h1-line h1-accent"><span id="hl3">chaosu.</span></span>
+    </h1>
+    <p class="hero-sub" id="heroSub">Evidencia pracovníkov priamo zo stavby. Stavbyvedúci zaznamená dochádzku za 3 minúty — vy máte prehľad v reálnom čase.</p>
+    <div class="hero-cta-row" id="heroCta">
+      <a href="#signup" class="hero-btn"><span>Chcem stavBOOK →</span></a>
+      <a href="#screens" class="hero-link">Pozrieť ukážku <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="hero-stats" id="heroStats">
+      <div><span class="hstat-n">3 min</span><span class="hstat-l">Denná evidencia</span></div>
+      <div><span class="hstat-n">1 klik</span><span class="hstat-l">Export výkazu</span></div>
+      <div><span class="hstat-n">0 ×</span><span class="hstat-l">Stratené záznamy</span></div>
+    </div>
+  </div>
+
+  <!-- floating deco cards -->
+  <div class="hero-deco">
+    <div class="hero-glow"></div>
+    <div class="hero-grid"></div>
+    <div class="fcard fcard1">
+      <div class="fcard-label">Prítomní dnes</div>
+      <div class="fcard-val">14 <span class="fcard-unit">/ 18</span></div>
+    </div>
+    <div class="fcard fcard2">
+      <div class="fcard-row"><div class="fcard-dot fcard-dot-g"></div><span class="fcard-name">Ján Novák</span><span class="fcard-time">07:05</span><span class="fcard-badge fbg">Prítomný</span></div>
+      <div class="fcard-row"><div class="fcard-dot fcard-dot-g"></div><span class="fcard-name">Peter Mináč</span><span class="fcard-time">07:18</span><span class="fcard-badge fbg">Prítomný</span></div>
+      <div class="fcard-row"><div class="fcard-dot fcard-dot-a"></div><span class="fcard-name">Tomáš Kraľovič</span><span class="fcard-time">08:14</span><span class="fcard-badge fba">Neskorý</span></div>
+      <div class="fcard-row"><div class="fcard-dot fcard-dot-r"></div><span class="fcard-name">Martin Horváth</span><span class="fcard-time">—</span><span class="fcard-badge fbr">Absencia</span></div>
+    </div>
+    <div class="fcard fcard3">
+      <div class="fcard-label">Export — Apríl 2025</div>
+      <div class="fcard-val">2 847 <span class="fcard-unit">hodín</span></div>
+    </div>
+    <div class="fcard fcard4">
+      <div class="fcard-label">Dochádzkovosť</div>
+      <div class="fcard-val">87 <span class="fcard-unit">%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marqueeTrack">
+    <span class="marquee-item">Evidencia príchodov<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Export výkazov<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Správa absencií<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Vlastná subdoména<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Mobilné zariadenia<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Reálny čas<span class="marquee-sep"></span></span>
+    <span class="marquee-item">stavBOOK<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Evidencia príchodov<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Export výkazov<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Správa absencií<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Vlastná subdoména<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Mobilné zariadenia<span class="marquee-sep"></span></span>
+    <span class="marquee-item">Reálny čas<span class="marquee-sep"></span></span>
+    <span class="marquee-item">stavBOOK<span class="marquee-sep"></span></span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="section-eyebrow reveal">Prečo stavBOOK</div>
+  <div class="section-h reveal">Každá funkcia vznikla<br>z reálnej potreby</div>
+  <p class="section-sub reveal">Nie generický HR systém. Nástroj navrhnutý priamo pre stavebné firmy — každá funkcia rieši problém, ktorý dobre poznáte.</p>
+  <div class="feats-grid">
+    <div class="feat-card reveal">
+      <div class="feat-num">01</div>
+      <div class="feat-ico">📋</div>
+      <div class="feat-title">Evidencia dochádzky</div>
+      <p class="feat-desc">Stavbyvedúci otvorie telefón a za 3 minúty zaznamená príchody. Žiadne papiere, žiadne tabuľky.</p>
+      <ul class="feat-list">
+        <li>Príchod a odchod s presným časom</li>
+        <li>Okamžitá viditeľnosť pre admina</li>
+        <li>História každého pracovníka</li>
+      </ul>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-num">02</div>
+      <div class="feat-ico">🏗️</div>
+      <div class="feat-title">Správa projektov</div>
+      <p class="feat-desc">Vytvorte projekty, priraďte ľudí a sledujte každú stavbu zvlášť. Prehľad cez celú firmu naraz.</p>
+      <ul class="feat-list">
+        <li>Neobmedzený počet aktívnych projektov</li>
+        <li>Zamestnanci na viacerých stavbách</li>
+        <li>Archív ukončených projektov</li>
+      </ul>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-num">03</div>
+      <div class="feat-ico">📊</div>
+      <div class="feat-title">Export výkazov</div>
+      <p class="feat-desc">Na konci mesiaca stiahnete hotový výkaz — odpracované hodiny za každého pracovníka. Rovno pre účtovníčku.</p>
+      <ul class="feat-list">
+        <li>Mesačný súhrn hodín</li>
+        <li>Export po zamestnancoch aj projektoch</li>
+        <li>Formát pre mzdovú agendu</li>
+      </ul>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-num">04</div>
+      <div class="feat-ico">⚠️</div>
+      <div class="feat-title">Správa absencií</div>
+      <p class="feat-desc">Stavbyvedúci nahlási absenciu priamo v systéme — admin to vidí okamžite. Koniec ranného telefónneho chaosu.</p>
+      <ul class="feat-list">
+        <li>Typy: PN, dovolenka, nehlásená</li>
+        <li>Notifikácia adminovi</li>
+        <li>Zahrnuté automaticky vo výkazoch</li>
+      </ul>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-num">05</div>
+      <div class="feat-ico">🔐</div>
+      <div class="feat-title">Vaša subdoména</div>
+      <p class="feat-desc">Každá firma beží na vlastnej subdoméne. Dáta úplne oddelené — žiadny iný zákazník ich nevidí.</p>
+      <ul class="feat-list">
+        <li>napr. vasa-firma.stavbook.sk</li>
+        <li>Izolované a bezpečné prostredie</li>
+        <li>Automatické zálohovanie</li>
+      </ul>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-num">06</div>
+      <div class="feat-ico">📱</div>
+      <div class="feat-title">Funguje na mobile</div>
+      <p class="feat-desc">Navrhnuté pre terén. Stačí telefón — bez inštalácie, bez školenia. Otvorí, zaznamená, hotovo.</p>
+      <ul class="feat-list">
+        <li>Funguje na akomkoľvek smartfóne</li>
+        <li>Žiadna inštalácia z App Store</li>
+        <li>Veľké tlačidlá — aj v rukaviciach</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENS -->
+<section class="screens-section" id="screens">
+  <div class="section-eyebrow reveal">Ukážka aplikácie</div>
+  <div class="section-h reveal">Takto to vyzerá<br>každý deň v praxi</div>
+  <p class="section-sub reveal">Žiadne zbytočné funkcie. Len to čo skutočne potrebujete.</p>
+
+  <!-- Screen 1: Phone -->
+  <div class="screen-block reveal" id="sb1">
+    <div class="sb-text">
+      <div class="sb-text-tag">Stavbyvedúci – mobilná evidencia</div>
+      <div class="sb-text-h">Dochádzka zaznamenaná za 3 minúty</div>
+      <p class="sb-text-p">Každé ráno stavbyvedúci otvorí telefón a jedným ťuknutím označí kto prišiel. Čas sa zapíše automaticky.</p>
+      <ul class="sb-points">
+        <li>Príchod zaznamenaný jedným ťuknutím</li>
+        <li>Čas sa zapíše automaticky</li>
+        <li>Admin vidí zmeny okamžite</li>
+        <li>Funguje bez App Store</li>
+      </ul>
+    </div>
+    <div style="display:flex;justify-content:center;">
+      <div class="mock-phone">
+        <div class="mp-status"><span class="mp-time" id="mpClock">07:31</span><span style="font-size:.5rem;color:rgba(255,255,255,.3)">▲▲◼</span></div>
+        <div class="mp-body">
+          <div class="mp-header">
+            <span class="mp-logo">stav<span>BOOK</span></span>
+            <span class="mp-live">● LIVE</span>
+          </div>
+          <div class="mp-project">📍 Bratislava – Obytný komplex BA01</div>
+          <div id="mpList"></div>
+          <div class="mp-foot" id="mpFoot">0 / 5 zapísaných</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Dashboard -->
+  <div class="screen-block flip reveal" id="sb2">
+    <div class="sb-text">
+      <div class="sb-text-tag">Admin – dashboard</div>
+      <div class="sb-text-h">Celá firma na jednej obrazovke</div>
+      <p class="sb-text-p">Konateľ vidí každé ráno kto je kde, koľko ľudí prišlo a kde sú medzery — bez toho aby musel volať.</p>
+      <ul class="sb-points">
+        <li>Počet prítomných v reálnom čase</li>
+        <li>Dochádzkovosť v percentách</li>
+        <li>Prehľad všetkých stavieb</li>
+        <li>Upozornenie na absencie</li>
+      </ul>
+    </div>
+    <div class="mock-browser">
+      <div class="mock-bar">
+        <div class="mock-dots"><div class="mock-dot md-r"></div><div class="mock-dot md-y"></div><div class="mock-dot md-g"></div></div>
+        <div class="mock-url">vasa-firma.stavbook.sk/admin</div>
+      </div>
+      <div class="mock-body" id="dashBody">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+          <div><div style="font-family:'Oswald',sans-serif;font-size:.85rem;color:rgba(255,255,255,.5);">stav<span style="color:var(--orange)">BOOK</span></div><div style="font-size:.55rem;color:rgba(255,255,255,.2);letter-spacing:.08em;text-transform:uppercase;">Admin panel · Pondelok 19. mája 2025</div></div>
+        </div>
+        <div class="adm-stat-row">
+          <div class="adm-s"><div class="adm-sn" id="ds1">0</div><div class="adm-sl">Zamestnanci</div></div>
+          <div class="adm-s"><div class="adm-sn" id="ds2" style="color:var(--green)">0</div><div class="adm-sl">Prítomní</div></div>
+          <div class="adm-s"><div class="adm-sn" id="ds3" style="color:var(--amber)">0</div><div class="adm-sl">Absencie</div></div>
+          <div class="adm-s"><div class="adm-sn" id="ds4">0</div><div class="adm-sl">Stavby</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.55rem;color:rgba(255,255,255,.2);margin-bottom:.2rem;"><span>Dochádzkovosť</span><span id="dashPct">0%</span></div>
+        <div class="adm-prog"><div class="adm-prog-fill" id="dashProgFill" style="width:0%"></div></div>
+        <div class="adm-th"><span>Zamestnanec</span><span>Projekt</span><span>Príchod</span><span>Hod.</span><span>Stav</span></div>
+        <div id="dashRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Export -->
+  <div class="screen-block reveal" id="sb3">
+    <div class="sb-text">
+      <div class="sb-text-tag">Mesačné výkazy</div>
+      <div class="sb-text-h">Export za minútu,<br>nie za hodinu</div>
+      <p class="sb-text-p">Zabudnite na ručné počítanie hodín v Exceli. stavBOOK vypočíta všetko sám — vy len kliknete.</p>
+      <ul class="sb-points">
+        <li>Automatický súčet hodín za mesiac</li>
+        <li>Rozpad po zamestnancoch aj projektoch</li>
+        <li>Odovzdáte priamo mzdovej účtovníčke</li>
+        <li>Formát pripravený na stiahnutie</li>
+      </ul>
+    </div>
+    <div class="mock-browser">
+      <div class="mock-bar">
+        <div class="mock-dots"><div class="mock-dot md-r"></div><div class="mock-dot md-y"></div><div class="mock-dot md-g"></div></div>
+        <div class="mock-url">vasa-firma.stavbook.sk/export</div>
+      </div>
+      <div class="mock-body">
+        <div class="exp-top">
+          <span class="exp-per">Apríl 2025 — Výkaz dochádzky</span>
+          <button class="exp-dl" id="expBtn" onclick="triggerExport()">⬇ Stiahnuť XLS</button>
+        </div>
+        <div class="exp-sums">
+          <div class="exp-s"><div class="exp-sn" id="ex1">0</div><div class="exp-sl">Zamestnancov</div></div>
+          <div class="exp-s"><div class="exp-sn" id="ex2" style="color:#FFD97A">0</div><div class="exp-sl">Hodín celkom</div></div>
+          <div class="exp-s"><div class="exp-sn" id="ex3" style="color:var(--red)">0</div><div class="exp-sl">Dní absencií</div></div>
+        </div>
+        <div class="exp-th"><span>Zamestnanec</span><span>Prac. dni</span><span>Absencie</span><span>Hodín</span></div>
+        <div id="expRows"></div>
+        <div id="expOk" style="display:none;text-align:center;padding:.7rem;font-size:.65rem;color:var(--green);font-weight:700;letter-spacing:.1em;text-transform:uppercase;">✓ Súbor pripravený na stiahnutie</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how-section" id="how">
+  <div class="section-eyebrow reveal">Ako to funguje</div>
+  <div class="section-h reveal">Od kontaktu po prvý výkaz</div>
+  <p class="section-sub reveal">Celé nastavenie zvládnete za jedno dopoludnie.</p>
+  <div class="steps-wrap">
+    <div class="step-item reveal">
+      <div class="step-num-wrap"><div class="step-circle-outer"><div class="step-circle-inner">1</div></div></div>
+      <div class="step-title">Kontaktujete nás</div>
+      <p class="step-desc">Napíšte email alebo zavolajte. Nastavíme firemnú subdoménu a adminský účet.</p>
+      <span class="step-badge">Do 1 prac. dňa</span>
+    </div>
+    <div class="step-item reveal">
+      <div class="step-num-wrap"><div class="step-circle-outer"><div class="step-circle-inner">2</div></div></div>
+      <div class="step-title">Nastavíte firmu</div>
+      <p class="step-desc">Admin pridá zamestnancov a vytvorí projekty. Celé za 20 minút, bez IT znalostí.</p>
+      <span class="step-badge">~20 minút</span>
+    </div>
+    <div class="step-item reveal">
+      <div class="step-num-wrap"><div class="step-circle-outer"><div class="step-circle-inner">3</div></div></div>
+      <div class="step-title">Stavbyvedúci eviduje</div>
+      <p class="step-desc">Každé ráno otvorí telefón a zaznamená kto prišiel. Rýchlo, z terénu.</p>
+      <span class="step-badge">3 min denne</span>
+    </div>
+    <div class="step-item reveal">
+      <div class="step-num-wrap"><div class="step-circle-outer"><div class="step-circle-inner">4</div></div></div>
+      <div class="step-title">Exportujete výkaz</div>
+      <p class="step-desc">Na konci mesiaca stiahnete hotový výkaz a odovzdáte účtovníčke. Jedno kliknutie.</p>
+      <span class="step-badge">1 klik</span>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section class="roles-section" id="roles">
+  <div class="section-eyebrow reveal">Používateľské roly</div>
+  <div class="section-h reveal">Každý vidí len to,<br>čo potrebuje</div>
+  <div class="roles-grid">
+    <div class="role-card reveal">
+      <div class="role-top role-top-admin">
+        <span class="role-pill rp-admin">Admin – Konateľ / Majiteľ</span>
+        <div class="role-h">Máte celkový<br>prehľad</div>
+        <div class="role-sub">Prístup k celej firme cez vlastnú subdoménu</div>
+      </div>
+      <div class="role-body">
+        <ul class="role-items">
+          <li><strong>Správa zamestnancov</strong> — pridáva, upravuje, deaktivuje</li>
+          <li><strong>Projekty a stavby</strong> — vytvára a priraďuje ľudí</li>
+          <li><strong>Prehľad dochádzky</strong> — celá firma v reálnom čase</li>
+          <li><strong>Export výkazov</strong> — mesačné reporty pre mzdy</li>
+          <li><strong>Správa absencií</strong> — prehľad všetkých nahlásených</li>
+        </ul>
+      </div>
+    </div>
+    <div class="role-card reveal">
+      <div class="role-top role-top-master">
+        <span class="role-pill rp-master">Stavbyvedúci – Master</span>
+        <div class="role-h">Riadite každý deň<br>v teréne</div>
+        <div class="role-sub">Mobilný prístup zameraný na evidenciu</div>
+      </div>
+      <div class="role-body">
+        <ul class="role-items">
+          <li><strong>Zoznam pracovníkov</strong> — všetci aktívni zamestnanci</li>
+          <li><strong>Evidencia príchodov</strong> — jedným ťuknutím</li>
+          <li><strong>Evidencia odchodov</strong> — koniec pracovného dňa</li>
+          <li><strong>Hlásenie absencií</strong> — s dôvodom pre admina</li>
+          <li><strong>Dnešný prehľad</strong> — aktuálny stav stavby</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section">
+  <div class="pricing-inner reveal">
+    <div>
+      <div class="section-eyebrow" style="margin-bottom:.8rem;">Cenník</div>
+      <div class="pricing-h">Cena podľa<br>veľkosti firmy</div>
+      <p class="pricing-p">Žiadne skryté poplatky. Platíte podľa počtu zamestnancov — malá firma platí menej. Presné ceny dohodíme osobne.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier-row"><div><div class="tier-l">Do 20 zamestnancov</div><div class="tier-note">Ideálne pre menšie firmy</div></div><span class="tier-badge tb1">Základný</span></div>
+      <div class="tier-row"><div><div class="tier-l">21 – 50 zamestnancov</div><div class="tier-note">Pre rastúce firmy</div></div><span class="tier-badge tb2">Štandard</span></div>
+      <div class="tier-row"><div><div class="tier-l">50+ zamestnancov</div><div class="tier-note">Na mieru</div></div><span class="tier-badge tb3">Premium</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<section class="signup-section" id="signup">
+  <div class="reveal">
+    <div class="section-eyebrow">Záujem o stavBOOK</div>
+    <div class="signup-h">Zanechajte kontakt.<br>Ozveme sa vám.</div>
+    <p class="signup-p">stavBOOK je v príprave na spustenie. Zanechajte kontakt — osobne vás prevedieme systémom a nastavíme všetko na mieru.</p>
+    <div class="signup-checks">
+      <div class="sc">Bez automatickej registrácie — všetko osobne</div>
+      <div class="sc">Cena závisí od počtu zamestnancov</div>
+      <div class="sc">Ozveme sa do 1 pracovného dňa</div>
+      <div class="sc">Pomôžeme s celým nastavením</div>
+    </div>
+  </div>
+  <div class="form-box reveal" id="formBox">
+    <div class="form-h">Mám záujem o stavBOOK</div>
+    <div class="fg"><label>Meno a priezvisko</label><input type="text" placeholder="Ján Novák" id="fn"></div>
+    <div class="fg"><label>Email</label><input type="email" placeholder="jan@stavfirma.sk" id="fe"></div>
+    <div class="fg"><label>Telefón (nepovinné)</label><input type="tel" placeholder="+421 900 000 000" id="ft"></div>
+    <div class="fg"><label>Počet zamestnancov</label>
+      <select id="fs"><option value="">— Vyberte —</option><option>Do 10</option><option>11 – 20</option><option>21 – 50</option><option>50+</option></select>
+    </div>
+
+    <!-- GDPR checkbox -->
+    <div id="gdprWrap" style="display:flex;align-items:flex-start;gap:.75rem;margin:.8rem 0 1rem;padding:.9rem 1rem;background:rgba(245,130,10,.05);border:1px solid rgba(245,130,10,.15);border-radius:3px;">
+      <div style="position:relative;flex-shrink:0;margin-top:1px;">
+        <input type="checkbox" id="fgdpr" style="position:absolute;opacity:0;width:20px;height:20px;cursor:pointer;z-index:1;margin:0;">
+        <div id="checkboxViz" style="width:20px;height:20px;border:2px solid var(--border);border-radius:3px;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:none;">
+          <svg id="checkMark" width="12" height="12" viewBox="0 0 12 12" fill="none" style="opacity:0;transition:opacity .15s;"><path d="M2 6l3 3 5-5" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <label for="fgdpr" style="font-size:.82rem;color:var(--cream2);line-height:1.55;cursor:pointer;">
+        Súhlasím so spracovaním osobných údajov podľa
+        <a href="#" onclick="openModal('gdpr');return false;" style="color:var(--orange);text-decoration:none;font-weight:600;">Zásad ochrany osobných údajov</a>.
+        Údaje budú použité výlučne na kontaktovanie ohľadom stavBOOK.
+      </label>
+    </div>
+
+    <button class="submit-btn" onclick="submitForm()" id="submitBtn"><span id="submitBtnText">Odoslať záujem →</span></button>
+    <p class="form-note">Vaše údaje nezdieľame s nikým.</p>
+    <div id="formError" style="display:none;margin-top:.7rem;padding:.7rem 1rem;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);border-radius:3px;font-size:.82rem;color:#E74C3C;text-align:center;"></div>
+    <div class="form-ok" id="formOk">
+      <div class="form-ok-icon">✅</div>
+      <div class="form-ok-h">Ďakujeme!</div>
+      <p class="form-ok-p">Ozveme sa do 1 pracovného dňa.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-logo">stav<span>BOOK</span></div>
+  <span>© 2026 stavBOOK · Všetky práva vyhradené</span>
+  <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
+    <a href="#" onclick="openModal('gdpr');return false;" style="color:var(--muted);font-size:.75rem;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--muted)'">Ochrana osobných údajov</a>
+    <a href="#" onclick="openModal('cookies');return false;" style="color:var(--muted);font-size:.75rem;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='var(--orange)'" onmouseout="this.style.color='var(--muted)'">Cookies</a>
+    <span style="color:var(--muted);font-size:.75rem;">info@mizaprojects.sk</span>
+  </div>
+</footer>
+
+<!-- COOKIES BANNER -->
+<div id="cookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--surface);border-top:1px solid var(--border);padding:1.2rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;">
+  <div style="flex:1;min-width:250px;">
+    <div style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);margin-bottom:.3rem;letter-spacing:.03em;">Táto stránka používa cookies</div>
+    <p style="font-size:.8rem;color:var(--muted);line-height:1.6;max-width:600px;">Používame len nevyhnutné technické cookies pre správne fungovanie stránky. Žiadne sledovacie ani reklamné cookies nepoužívame. <a href="#" onclick="openModal('cookies');return false;" style="color:var(--orange);text-decoration:none;">Viac informácií</a></p>
+  </div>
+  <div style="display:flex;gap:.8rem;flex-shrink:0;">
+    <button onclick="acceptCookies()" style="background:var(--orange);color:#000;border:none;padding:.6rem 1.5rem;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:background .2s;">Rozumiem</button>
+  </div>
+</div>
+
+<!-- MODAL OVERLAY -->
+<div id="modalOverlay" onclick="closeModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9500;backdrop-filter:blur(4px);"></div>
+
+<!-- GDPR MODAL -->
+<div id="modalGdpr" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9600;width:min(680px,92vw);max-height:85vh;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <div style="font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:.04em;color:var(--cream);">Ochrana osobných údajov</div>
+    <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;line-height:1;padding:.2rem .4rem;transition:color .2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+  </div>
+  <div style="padding:1.8rem 2rem;overflow-y:auto;font-size:.88rem;color:var(--cream2);line-height:1.8;">
+    <p style="margin-bottom:1rem;color:var(--muted);font-size:.8rem;">Platné od 1. januára 2026</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">1. Prevádzkovateľ</h3>
+    <p style="margin-bottom:1rem;">Prevádzkovateľom webovej stránky stavbook.sk a správcom osobných údajov je spoločnosť MizaProjects (kontakt: info@mizaprojects.sk). Spracúvame osobné údaje v súlade s nariadením GDPR (EÚ) 2016/679 a zákonom č. 18/2018 Z. z. o ochrane osobných údajov.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">2. Aké údaje zbierame</h3>
+    <p style="margin-bottom:.7rem;">Prostredníctvom kontaktného formulára zbierame:</p>
+    <ul style="margin-left:1.2rem;margin-bottom:1rem;display:flex;flex-direction:column;gap:.3rem;">
+      <li>Meno a priezvisko</li>
+      <li>E-mailová adresa</li>
+      <li>Telefónne číslo (nepovinné)</li>
+      <li>Počet zamestnancov vo firme</li>
+    </ul>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">3. Účel spracovania</h3>
+    <p style="margin-bottom:1rem;">Vaše osobné údaje spracúvame výlučne za účelom odpovede na váš záujem o produkt stavBOOK a nadviazania obchodného kontaktu. Údaje nepoužívame na automatizovaný marketing ani nepredávame tretím stranám.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">4. Právny základ</h3>
+    <p style="margin-bottom:1rem;">Spracúvanie je založené na vašom súhlase (čl. 6 ods. 1 písm. a) GDPR), ktorý vyjadrujete odoslaním formulára. Súhlas môžete kedykoľvek odvolať zaslaním e-mailu na info@mizaprojects.sk.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">5. Doba uchovávania</h3>
+    <p style="margin-bottom:1rem;">Údaje uchovávame po dobu nevyhnutnú na vybavenie vašej požiadavky, najdlhšie však 2 roky od posledného kontaktu, pokiaľ nevznikne iný právny základ pre dlhšie uchovávanie.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">6. Vaše práva</h3>
+    <p style="margin-bottom:.7rem;">Máte právo:</p>
+    <ul style="margin-left:1.2rem;margin-bottom:1rem;display:flex;flex-direction:column;gap:.3rem;">
+      <li>na prístup k vašim osobným údajom</li>
+      <li>na opravu nesprávnych údajov</li>
+      <li>na vymazanie údajov (právo byť zabudnutý)</li>
+      <li>na obmedzenie spracovania</li>
+      <li>podať sťažnosť na Úrad na ochranu osobných údajov SR</li>
+    </ul>
+    <p>Pre uplatnenie práv nás kontaktujte na <span style="color:var(--orange)">info@mizaprojects.sk</span>.</p>
+  </div>
+</div>
+
+<!-- COOKIES MODAL -->
+<div id="modalCookies" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9600;width:min(640px,92vw);max-height:85vh;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <div style="font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:.04em;color:var(--cream);">Zásady používania cookies</div>
+    <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;line-height:1;padding:.2rem .4rem;transition:color .2s;" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+  </div>
+  <div style="padding:1.8rem 2rem;overflow-y:auto;font-size:.88rem;color:var(--cream2);line-height:1.8;">
+    <p style="margin-bottom:1rem;color:var(--muted);font-size:.8rem;">Platné od 1. januára 2026</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">Čo sú cookies</h3>
+    <p style="margin-bottom:1rem;">Cookies sú malé textové súbory, ktoré sa ukladajú vo vašom prehliadači pri návšteve webovej stránky. Pomáhajú zabezpečiť správne fungovanie stránky a zapamätať si vaše nastavenia.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">Aké cookies používame</h3>
+
+    <div style="background:rgba(245,130,10,.06);border:1px solid var(--border);border-radius:4px;padding:1rem 1.2rem;margin-bottom:.8rem;">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
+        <span style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(46,204,113,.15);color:#2ECC71;padding:2px 8px;border-radius:2px;">Nevyhnutné</span>
+        <span style="font-size:.8rem;font-weight:600;color:var(--cream);">Technické cookies</span>
+      </div>
+      <p style="font-size:.83rem;color:var(--muted);">Zabezpečujú základné funkcie stránky — napríklad zapamätanie vášho súhlasu s cookies. Tieto cookies sú nevyhnutné pre fungovanie stránky a nedajú sa vypnúť.</p>
+      <div style="margin-top:.7rem;font-size:.78rem;color:var(--muted);">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;font-weight:600;color:rgba(255,255,255,.3);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;"><span>Názov</span><span>Účel</span><span>Platnosť</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.3rem;padding:.3rem 0;border-top:1px solid var(--border2);"><span style="color:var(--orange);">sb_cookies</span><span>Súhlas s cookies</span><span>1 rok</span></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:4px;padding:1rem 1.2rem;margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
+        <span style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(107,99,88,.3);color:var(--muted);padding:2px 8px;border-radius:2px;">Nepoužívame</span>
+        <span style="font-size:.8rem;font-weight:600;color:var(--muted);">Analytické a reklamné cookies</span>
+      </div>
+      <p style="font-size:.83rem;color:var(--muted);">Na tejto stránke nepoužívame žiadne analytické, reklamné ani sledovacie cookies (napr. Google Analytics, Facebook Pixel). Vaše správanie na webe nesledujeme.</p>
+    </div>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">Správa cookies</h3>
+    <p style="margin-bottom:1rem;">Cookies môžete kedykoľvek vymazať alebo zakázať v nastaveniach svojho prehliadača. Upozorňujeme, že vypnutie nevyhnutných cookies môže ovplyvniť funkčnosť stránky.</p>
+
+    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">Kontakt</h3>
+    <p>V prípade otázok ohľadom cookies nás kontaktujte na <span style="color:var(--orange)">info@mizaprojects.sk</span>.</p>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ─── CURSOR ─── */
+var cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+var mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',function(e){
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,.feat-card,.role-card').forEach(function(el){
+  el.addEventListener('mouseenter',function(){cur.classList.add('hover');ring.classList.add('hover');});
+  el.addEventListener('mouseleave',function(){cur.classList.remove('hover');ring.classList.remove('hover');});
+});
+
+/* ─── HERO CANVAS PARTICLES ─── */
+var canvas=document.getElementById('heroCanvas');
+var ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+var particles=[];
+for(var i=0;i<70;i++){
+  particles.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    vx:(Math.random()-.5)*.3,
+    vy:(Math.random()-.5)*.3,
+    r:Math.random()*1.5+.5,
+    o:Math.random()*.4+.1
+  });
+}
+function drawParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(function(p){
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
+    if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(245,130,10,'+p.o+')';
+    ctx.fill();
+  });
+  // connections
+  for(var i=0;i<particles.length;i++){
+    for(var j=i+1;j<particles.length;j++){
+      var dx=particles[i].x-particles[j].x;
+      var dy=particles[i].y-particles[j].y;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle='rgba(245,130,10,'+(0.06*(1-dist/120))+')';
+        ctx.lineWidth=.8;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ─── HERO GSAP ENTRANCE ─── */
+var tl=gsap.timeline({delay:.2});
+tl.from('#hl1',{y:'100%',duration:.7,ease:'power3.out'})
+  .from('#hl2',{y:'100%',duration:.7,ease:'power3.out'},'-=.45')
+  .from('#hl3',{y:'100%',duration:.7,ease:'power3.out'},'-=.45')
+  .from('#heroSub',{opacity:0,y:20,duration:.6,ease:'power2.out'},'-=.3')
+  .from('#heroCta',{opacity:0,y:20,duration:.6,ease:'power2.out'},'-=.4')
+  .from('#heroStats',{opacity:0,y:20,duration:.6,ease:'power2.out'},'-=.3')
+  .from('.fcard',{opacity:0,y:30,stagger:.15,duration:.7,ease:'back.out(1.5)'},'-=.4');
+
+/* ─── SCROLL REVEALS ─── */
+document.body.classList.add('gsap-ready');
+gsap.utils.toArray('.reveal').forEach(function(el){
+  gsap.fromTo(el,
+    {opacity:0,y:40},
+    {opacity:1,y:0,duration:.8,ease:'power2.out',
+     scrollTrigger:{trigger:el,start:'top 88%',once:true}}
+  );
+});
+
+/* ─── HAMBURGER ─── */
+function toggleMenu(){
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+/* ─── PHONE ANIMATION ─── */
+var mpWorkers=[
+  {i:'JN',n:'Ján Novák',bg:'rgba(192,74,26,.4)',tc:'#FFB89A',t:'07:05',s:'g'},
+  {i:'PM',n:'Peter Mináč',bg:'rgba(139,105,20,.4)',tc:'#FFD97A',t:'07:18',s:'g'},
+  {i:'RK',n:'Rastislav Kováč',bg:'rgba(45,122,58,.35)',tc:'#88DD88',t:'07:22',s:'g'},
+  {i:'TK',n:'Tomáš Kraľovič',bg:'rgba(107,101,96,.4)',tc:'#CCC8C3',t:'08:12',s:'a'},
+  {i:'MH',n:'Martin Horváth',bg:'rgba(60,90,150,.35)',tc:'#9BB5FF',t:null,s:'r'}
+];
+function buildMpRows(){
+  var list=document.getElementById('mpList');if(!list)return;
+  list.innerHTML='';
+  mpWorkers.forEach(function(w,i){
+    var r=document.createElement('div');
+    r.className='mp-row';r.id='mpr'+i;
+    r.innerHTML='<div class="mp-av" style="background:'+w.bg+';color:'+w.tc+'">'+w.i+'</div>'+
+      '<span class="mp-name">'+w.n+'</span>'+
+      '<span class="mp-t" id="mpt'+i+'">—</span>'+
+      '<div class="mp-dot" id="mpd'+i+'" style="background:rgba(255,255,255,.1)"></div>';
+    list.appendChild(r);
+  });
+}
+var mpAnimDone=false;
+ScrollTrigger.create({trigger:'#sb1',start:'top 70%',onEnter:function(){if(!mpAnimDone){mpAnimDone=true;startMpAnim();}}});
+function startMpAnim(){
+  buildMpRows();
+  var idx=0,done=0;
+  function next(){
+    if(idx>=mpWorkers.length){setTimeout(function(){mpAnimDone=false;done=0;idx=0;buildMpRows();document.getElementById('mpFoot').textContent='0 / 5 zapísaných';setTimeout(next,800);},4500);return;}
+    var w=mpWorkers[idx];
+    var row=document.getElementById('mpr'+idx);
+    var dot=document.getElementById('mpd'+idx);
+    var te=document.getElementById('mpt'+idx);
+    row.style.background='rgba(255,255,255,.04)';
+    dot.style.background='#F39C12';
+    setTimeout(function(){
+      if(w.s==='r'){dot.style.background='#E74C3C';te.textContent='—';te.style.color='#E74C3C';}
+      else if(w.s==='a'){dot.style.background='#F39C12';te.textContent=w.t;te.style.color='rgba(255,255,255,.5)';done++;}
+      else{dot.style.background='#2ECC71';te.textContent=w.t;te.style.color='rgba(255,255,255,.6)';done++;}
+      row.style.background='';
+      document.getElementById('mpFoot').textContent=done+' / 5 zapísaných';
+      idx++;setTimeout(next,950);
+    },650);
+  }
+  setTimeout(next,500);
+}
+
+/* ─── DASHBOARD ANIMATION ─── */
+var dashWorkers=[
+  {n:'Ján Novák',p:'Bratislava – BA01',t:'07:05',h:'7.5h',s:'tsg',l:'Prítomný'},
+  {n:'Peter Mináč',p:'Bratislava – BA01',t:'07:18',h:'7.2h',s:'tsg',l:'Prítomný'},
+  {n:'Rastislav Kováč',p:'Bratislava – BA01',t:'07:22',h:'7.0h',s:'tsg',l:'Prítomný'},
+  {n:'Tomáš Kraľovič',p:'Nitra – NR02',t:'08:14',h:'6.2h',s:'tsa',l:'Neskorý'},
+  {n:'Martin Horváth',p:'Trnava – TT01',t:'—',h:'—',s:'tsr',l:'Absencia'}
+];
+var dashDone=false;
+ScrollTrigger.create({trigger:'#sb2',start:'top 70%',onEnter:function(){if(!dashDone){dashDone=true;startDash();}}});
+function countTo(id,target,dur,color){
+  var el=document.getElementById(id);if(!el)return;
+  var v=0,step=Math.max(1,Math.ceil(target/(dur/50)));
+  var t=setInterval(function(){v+=step;if(v>=target){v=target;clearInterval(t);}el.textContent=v;if(color)el.style.color=color;},50);
+}
+function startDash(){
+  var rows=document.getElementById('dashRows');if(!rows)return;rows.innerHTML='';
+  setTimeout(function(){countTo('ds1',18,600);},200);
+  setTimeout(function(){countTo('ds2',14,800,'#2ECC71');},350);
+  setTimeout(function(){countTo('ds3',2,300,'#F39C12');},500);
+  setTimeout(function(){countTo('ds4',3,300);},600);
+  setTimeout(function(){
+    var fill=document.getElementById('dashProgFill');
+    var pct=document.getElementById('dashPct');
+    var v=0;var t=setInterval(function(){v+=2;if(v>78){v=78;clearInterval(t);}fill.style.width=v+'%';pct.textContent=v+'%';},20);
+  },800);
+  dashWorkers.forEach(function(d,i){
+    setTimeout(function(){
+      var row=document.createElement('div');
+      row.className='adm-tr row-in';
+      row.innerHTML='<span class="adm-tn">'+d.n+'</span><span class="adm-tp">'+d.p+'</span><span class="adm-ti">'+d.t+'</span><span class="adm-th2">'+d.h+'</span><span class="adm-ts '+d.s+'">'+d.l+'</span>';
+      rows.appendChild(row);
+    },1100+i*320);
+  });
+}
+
+/* ─── EXPORT ANIMATION ─── */
+var expWorkers=[
+  {n:'Ján Novák',d:21,a:0,h:168},
+  {n:'Peter Mináč',d:20,a:1,h:160},
+  {n:'Rastislav Kováč',d:19,a:2,h:152},
+  {n:'Tomáš Kraľovič',d:18,a:3,h:144},
+  {n:'Martin Horváth',d:17,a:4,h:136}
+];
+var expDone=false;
+ScrollTrigger.create({trigger:'#sb3',start:'top 70%',onEnter:function(){if(!expDone){expDone=true;startExport();}}});
+function startExport(){
+  var rows=document.getElementById('expRows');if(!rows)return;rows.innerHTML='';
+  document.getElementById('expOk').style.display='none';
+  setTimeout(function(){countTo('ex1',18,500);},200);
+  setTimeout(function(){
+    var el=document.getElementById('ex2');if(!el)return;
+    var v=0;var t=setInterval(function(){v+=47;if(v>=2847){v=2847;clearInterval(t);}el.textContent=v.toLocaleString('sk');},30);
+  },400);
+  setTimeout(function(){countTo('ex3',12,600);},600);
+  expWorkers.forEach(function(d,i){
+    setTimeout(function(){
+      var row=document.createElement('div');
+      row.className='exp-tr row-in';
+      row.innerHTML='<span class="exp-en">'+d.n+'</span><span class="exp-n">'+d.d+'</span><span class="exp-n">'+d.a+'</span><span class="exp-tot">'+d.h+'h</span>';
+      rows.appendChild(row);
+    },900+i*280);
+  });
+  setTimeout(function(){document.getElementById('expOk').style.display='block';},900+expWorkers.length*280+400);
+}
+function triggerExport(){
+  var btn=document.getElementById('expBtn');if(!btn)return;
+  btn.textContent='⏳ Generujem...';btn.disabled=true;btn.style.background='#6B6358';
+  setTimeout(function(){btn.textContent='✓ Hotovo!';btn.style.background='#2ECC71';
+    setTimeout(function(){btn.textContent='⬇ Stiahnuť XLS';btn.style.background='';btn.disabled=false;},2500);
+  },1800);
+}
+
+/* ─── COOKIES BANNER ─── */
+if(!localStorage.getItem('sb_cookies')){
+  var cb=document.getElementById('cookieBanner');
+  if(cb){cb.style.display='flex';}
+}
+function acceptCookies(){
+  localStorage.setItem('sb_cookies','1');
+  var cb=document.getElementById('cookieBanner');
+  if(cb){cb.style.opacity='0';cb.style.transition='opacity .3s';setTimeout(function(){cb.style.display='none';},300);}
+}
+
+/* ─── MODALS ─── */
+function openModal(which){
+  document.getElementById('modalOverlay').style.display='block';
+  var gdpr=document.getElementById('modalGdpr');
+  var cook=document.getElementById('modalCookies');
+  gdpr.style.display='none'; cook.style.display='none';
+  var target=which==='gdpr'?gdpr:cook;
+  target.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modalOverlay').style.display='none';
+  document.getElementById('modalGdpr').style.display='none';
+  document.getElementById('modalCookies').style.display='none';
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+/* ─── CHECKBOX VISUAL ─── */
+var fgdpr=document.getElementById('fgdpr');
+var cbViz=document.getElementById('checkboxViz');
+var cbMark=document.getElementById('checkMark');
+if(fgdpr){
+  fgdpr.addEventListener('change',function(){
+    if(this.checked){
+      cbViz.style.borderColor='var(--orange)';
+      cbViz.style.background='rgba(245,130,10,.15)';
+      cbMark.style.opacity='1';
+    } else {
+      cbViz.style.borderColor='var(--border)';
+      cbViz.style.background='var(--bg)';
+      cbMark.style.opacity='0';
+    }
+  });
+}
+
+/* ─── FORM ─── */
+function submitForm(){
+  var n=document.getElementById('fn').value.trim();
+  var e=document.getElementById('fe').value.trim();
+  var t=(document.getElementById('ft')||{value:''}).value.trim();
+  var s=(document.getElementById('fs')||{value:''}).value;
+  var gdprCb=document.getElementById('fgdpr');
+  var errEl=document.getElementById('formError');
+  var btn=document.getElementById('submitBtn');
+  var btnTxt=document.getElementById('submitBtnText');
+
+  errEl.style.display='none';
+
+  if(!n||!e){
+    errEl.textContent='Prosím vyplňte meno a email.';
+    errEl.style.display='block';return;
+  }
+  if(!gdprCb||!gdprCb.checked){
+    errEl.textContent='Súhlas s ochranou osobných údajov je povinný.';
+    errEl.style.display='block';
+    if(cbViz)cbViz.style.borderColor='#E74C3C';
+    return;
+  }
+
+  btn.disabled=true;
+  btnTxt.textContent='Odosielam...';
+  btn.style.background='var(--muted)';
+
+  var data=new FormData();
+  data.append('meno',n);
+  data.append('email',e);
+  data.append('telefon',t);
+  data.append('zamestnanci',s);
+  data.append('gdpr','1');
+
+  fetch('mail.php',{method:'POST',body:data})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.ok){
+        var box=document.getElementById('formBox');
+        box.querySelectorAll('.fg,.form-h,.form-note,.submit-btn,#formError').forEach(function(el){el.style.display='none';});
+        var checkWrap=document.getElementById('gdprWrap');
+        if(checkWrap)checkWrap.style.display='none';
+        document.getElementById('formOk').style.display='block';
+      } else {
+        errEl.textContent=res.message||'Nastala chyba. Skúste znova.';
+        errEl.style.display='block';
+        btn.disabled=false;
+        btnTxt.textContent='Odoslať záujem →';
+        btn.style.background='';
+      }
+    })
+    .catch(function(){
+      errEl.textContent='Nastala chyba spojenia. Kontaktujte nás priamo na info@mizaprojects.sk';
+      errEl.style.display='block';
+      btn.disabled=false;
+      btnTxt.textContent='Odoslať záujem →';
+      btn.style.background='';
+    });
+}
+</script>
+</body>
+</html>
