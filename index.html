@@ -50,15 +50,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:1.2rem 3rem;display:
 .nav-links a:hover{color:var(--orange);}
 .nav-btn{background:var(--orange);color:#000;padding:.55rem 1.4rem;border-radius:2px;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .2s,transform .15s;}
 .nav-btn:hover{background:var(--orange2);transform:translateY(-1px);}
-.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:4px;}
-.hamburger span{display:block;height:2px;background:var(--cream);border-radius:2px;transition:transform .25s,opacity .2s,width .2s;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:6px;width:36px;height:36px;justify-content:center;}
+.hamburger span{display:block;width:100%;height:2px;background:var(--cream);border-radius:2px;transition:transform .25s,opacity .2s,width .2s;}
 .hamburger span:nth-child(2){width:70%;}
 .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
 .hamburger.open span:nth-child(2){opacity:0;width:0;}
 .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-.mobile-menu{display:none;position:fixed;top:65px;left:0;right:0;background:rgba(12,10,8,0.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:1.5rem;flex-direction:column;gap:.3rem;z-index:499;}
+.mobile-menu{display:none;position:fixed;top:65px;left:0;right:0;background:rgba(18,14,10,0.99);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:1.5rem;flex-direction:column;gap:.3rem;z-index:499;}
 .mobile-menu.open{display:flex;}
-.mobile-menu a{color:var(--muted);font-size:1rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:.8rem 0;border-bottom:1px solid var(--border2);text-decoration:none;transition:color .2s;}
+.mobile-menu a{color:var(--cream2);font-size:1rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:.8rem 0;border-bottom:1px solid rgba(245,130,10,.12);text-decoration:none;transition:color .2s;}
 .mobile-menu a:hover{color:var(--orange);}
 .mobile-menu .mob-cta{margin-top:.5rem;display:block;text-align:center;background:var(--orange);color:#000;padding:.9rem;font-weight:700;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;border:none;}
 
@@ -137,8 +137,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;padding:1.2rem 3rem;display:
 .feat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.4,0,.2,1);}
 .feat-card:hover{background:var(--surface);}
 .feat-card:hover::before{transform:scaleX(1);}
-.feat-num{font-family:'Oswald',sans-serif;font-size:3.5rem;font-weight:700;color:var(--surface2);line-height:1;margin-bottom:1rem;letter-spacing:.02em;transition:color .3s;}
-.feat-card:hover .feat-num{color:rgba(245,130,10,.15);}
+.feat-num{font-family:'Oswald',sans-serif;font-size:3.5rem;font-weight:700;color:rgba(245,130,10,.2);line-height:1;margin-bottom:1rem;letter-spacing:.02em;transition:color .3s;}
+.feat-card:hover .feat-num{color:rgba(245,130,10,.35);}
 .feat-ico{font-size:1.8rem;margin-bottom:1rem;}
 .feat-title{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:600;letter-spacing:.04em;color:var(--cream);margin-bottom:.7rem;text-transform:uppercase;}
 .feat-desc{font-size:.9rem;color:var(--cream2);line-height:1.7;margin-bottom:1.2rem;}
@@ -720,10 +720,10 @@ footer span{font-size:.75rem;color:var(--muted);}
     </div>
 
     <!-- GDPR checkbox -->
-    <div id="gdprWrap" style="display:flex;align-items:flex-start;gap:.75rem;margin:.8rem 0 1rem;padding:.9rem 1rem;background:rgba(245,130,10,.05);border:1px solid rgba(245,130,10,.15);border-radius:3px;">
+    <div id="gdprWrap" style="display:flex;align-items:flex-start;gap:.75rem;margin:.8rem 0 1rem;padding:.9rem 1rem;background:rgba(245,130,10,.07);border:1px solid rgba(245,130,10,.25);border-radius:3px;">
       <div style="position:relative;flex-shrink:0;margin-top:1px;">
         <input type="checkbox" id="fgdpr" style="position:absolute;opacity:0;width:20px;height:20px;cursor:pointer;z-index:1;margin:0;">
-        <div id="checkboxViz" style="width:20px;height:20px;border:2px solid var(--border);border-radius:3px;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:none;">
+        <div id="checkboxViz" style="width:20px;height:20px;border:2px solid rgba(245,130,10,.5);border-radius:3px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:none;">
           <svg id="checkMark" width="12" height="12" viewBox="0 0 12 12" fill="none" style="opacity:0;transition:opacity .15s;"><path d="M2 6l3 3 5-5" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
@@ -779,7 +779,7 @@ footer span{font-size:.75rem;color:var(--muted);}
     <p style="margin-bottom:1rem;color:var(--muted);font-size:.8rem;">Platné od 1. januára 2026</p>
 
     <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">1. Prevádzkovateľ</h3>
-    <p style="margin-bottom:1rem;">Prevádzkovateľom webovej stránky stavbook.sk a správcom osobných údajov je spoločnosť MiZa Projects s. r. o.  (kontakt: info@mizaprojects.sk). Spracúvame osobné údaje v súlade s nariadením GDPR (EÚ) 2016/679 a zákonom č. 18/2018 Z. z. o ochrane osobných údajov.</p>
+    <p style="margin-bottom:1rem;">Prevádzkovateľom webovej stránky stavbook.sk a správcom osobných údajov je spoločnosť MizaProjects (kontakt: info@mizaprojects.sk). Spracúvame osobné údaje v súlade s nariadením GDPR (EÚ) 2016/679 a zákonom č. 18/2018 Z. z. o ochrane osobných údajov.</p>
 
     <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;color:var(--cream);letter-spacing:.04em;text-transform:uppercase;margin:1.2rem 0 .5rem;">2. Aké údaje zbierame</h3>
     <p style="margin-bottom:.7rem;">Prostredníctvom kontaktného formulára zbierame:</p>
@@ -1108,11 +1108,11 @@ if(fgdpr){
   fgdpr.addEventListener('change',function(){
     if(this.checked){
       cbViz.style.borderColor='var(--orange)';
-      cbViz.style.background='rgba(245,130,10,.15)';
+      cbViz.style.background='rgba(245,130,10,.2)';
       cbMark.style.opacity='1';
     } else {
-      cbViz.style.borderColor='var(--border)';
-      cbViz.style.background='var(--bg)';
+      cbViz.style.borderColor='rgba(245,130,10,.5)';
+      cbViz.style.background='rgba(255,255,255,.06)';
       cbMark.style.opacity='0';
     }
   });
